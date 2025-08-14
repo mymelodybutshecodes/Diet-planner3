@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Welcome — Wellness Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#fff4f8;--bg2:#ffeef6;--accent:#d8558f;--muted:#7b616d}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,system-ui;background:linear-gradient(120deg,var(--bg1),var(--bg2));min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;color:#372532}
+.card{width:100%;max-width:520px;background:rgba(255,255,255,0.82);backdrop-filter:blur(8px);border-radius:18px;padding:22px;border:1px solid #f4d6e3;box-shadow:0 12px 34px rgba(216,81,134,0.08)}
+.logo{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(180deg,#ff9fc9,#d8558f);color:white;font-weight:700;font-size:20px;box-shadow:0 10px 26px rgba(216,81,134,0.12)}
+.header{display:flex;gap:14px;align-items:center}
+.h1{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);margin:0}
+.hint{color:var(--muted);font-size:13px;margin-top:6px}
+.field{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+input{padding:10px 12px;border-radius:12px;border:1px solid #f3cfe0;font-size:15px;outline:none}
+button{margin-top:12px;padding:10px 14px;border-radius:12px;border:none;background:linear-gradient(90deg,#ff95b8,#d8558f);color:white;font-weight:600;cursor:pointer}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.small{font-size:13px;color:var(--muted)}
+.ghost{background:transparent;border:1px solid #f3cfe0;color:var(--accent);padding:10px 12px;border-radius:12px;cursor:pointer}
+.footer{margin-top:14px;color:var(--muted);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="card" role="main">
+    <div class="header">
+      <div class="logo">★</div>
+      <div>
+        <div class="h1">Wellness Planner</div>
+        <div class="hint">Clean, kind, effective — your plan in the browser.</div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:18px">
+      <label class="small">Email (saved locally)</label>
+      <input id="email" type="email" placeholder="you@example.com" autocomplete="username">
+      <label class="small">Password (saved locally)</label>
+      <input id="password" type="password" placeholder="choose a passphrase" autocomplete="new-password">
+    </div>
+
+    <div class="actions">
+      <button id="signup">Create account</button>
+      <button id="login" class="ghost">Log in</button>
+      <button id="guest" class="ghost">Continue as guest</button>
+    </div>
+
+    <div class="footer">Accounts are stored locally in your browser. No server — privacy friendly.</div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+function saveAccount(email, password){ localStorage.setItem('wp_account', JSON.stringify({email,password})); }
+function loadAccount(){ try{ return JSON.parse(localStorage.getItem('wp_account')||'null'); }catch(e){return null} }
+
+$('signup').addEventListener('click', ()=>{ 
+  const email = $('email').value.trim(); const password = $('password').value.trim();
+  if(!email || !password){ alert('Please enter email and password.'); return; }
+  saveAccount(email,password);
+  alert('Account created locally. Redirecting to planner...');
+  location.href='planner.html';
+});
+$('login').addEventListener('click', ()=>{ 
+  const acc = loadAccount(); const email = $('email').value.trim(); const password = $('password').value.trim();
+  if(!acc){ alert('No local account found. Create one or continue as guest.'); return; }
+  if(email===acc.email && password===acc.password){ location.href='planner.html'; } else { alert('Email or password do not match.'); }
+});
+$('guest').addEventListener('click', ()=>{ location.href='planner.html'; });
+
+// auto-fill if account exists
+const acc = loadAccount(); if(acc){ $('email').value = acc.email; }
+</script>
+</body>
+</html>
