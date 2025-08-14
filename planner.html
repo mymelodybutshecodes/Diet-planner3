@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Planner — Wellness</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#fff4f8;--bg2:#fff0f6;--accent:#d8558f;--muted:#6f5663;--card:rgba(255,255,255,0.82);--glass:#f4d6e3;--ring:rgba(216,81,134,0.16)}
+*{box-sizing:border-box}body{margin:0;font-family:Poppins,system-ui;background:linear-gradient(120deg,var(--bg1),var(--bg2));min-height:100vh;padding:24px;color:#372532}
+.container{max-width:980px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start}
+@media(max-width:900px){ .container{grid-template-columns:1fr} }
+.card{background:var(--card);border:1px solid var(--glass);border-radius:16px;padding:18px;box-shadow:0 10px 30px rgba(216,81,134,0.06)}
+.header{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(180deg,#ff95b8,#d8558f);color:white}
+.title{font-family:'Playfair Display',serif;color:var(--accent);font-weight:600}
+.progress{height:10px;background:#ffeaf3;border-radius:999px;overflow:hidden;border:1px solid #f6d6e6}
+.bar{height:100%;width:0;background:linear-gradient(90deg,#ff9bc6,#d8558f);transition:width .35s ease}
+.step{min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+h2{margin:0;color:var(--accent);font-size:1.1rem}
+.hint{color:var(--muted);margin-top:8px;font-size:14px}
+.controls{display:flex;gap:10px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+input,select{padding:12px 14px;border-radius:12px;border:1px solid #f3cfe0;outline:none;font-size:15px;width:220px;text-align:center}
+input:focus,select:focus{box-shadow:0 0 12px var(--ring);border-color:#f1a6c9}
+.btn{padding:10px 14px;border-radius:12px;border:none;background:linear-gradient(90deg,#ff9bc6,#d8558f);color:white;font-weight:600;cursor:pointer}
+.btn.ghost{background:#fff;border:1px solid #f3cfe0;color:var(--accent)}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+.tile{background:#fff;border-radius:10px;padding:10px;border:1px solid var(--glass);text-align:center}
+.pill{display:inline-block;background:#fff0f6;padding:6px 10px;border-radius:999px;color:#ab3b72;font-weight:700}
+.week{margin-top:10px;display:grid;gap:10px}
+.day{background:#fff;border-radius:10px;padding:10px;border:1px solid var(--glass)}
+.small{font-size:13px;color:var(--muted)}
+.footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="container">
+    <main class="card">
+      <div class="header">
+        <div class="logo">★</div>
+        <div><div class="title">Create your plan</div><div class="small">Friendly, personalized — no server</div></div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+          <div style="font-weight:700">Progress</div>
+          <div class="small" id="step-readout">Step 1 / 7</div>
+        </div>
+        <div class="progress" style="margin-top:8px"><div class="bar" id="bar"></div></div>
+      </div>
+
+      <div id="panel" class="step">
+        <!-- dynamic step content -->
+      </div>
+
+      <div class="controls" id="controls"></div>
+      <div class="footer">Your answers are saved locally — you can come back anytime.</div>
+    </main>
+
+    <aside class="card">
+      <div style="font-weight:700;color:var(--accent)">Summary</div>
+      <div class="kpis" style="margin-top:10px">
+        <div class="tile"><div class="small">BMI</div><div id="bmi" style="font-weight:700">—</div></div>
+        <div class="tile"><div class="small">Category</div><div id="cat" style="font-weight:700">—</div></div>
+        <div class="tile"><div class="small">BMR</div><div id="bmr" style="font-weight:700">— kcal</div></div>
+        <div class="tile"><div class="small">TDEE</div><div id="tdee" style="font-weight:700">— kcal</div></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="small" style="font-weight:700">Macros</div>
+        <div style="margin-top:8px"><span class="pill">Protein <b id="mp">—g</b></span> <span class="pill">Carbs <b id="mc">—g</b></span> <span class="pill">Fats <b id="mf">—g</b></span></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <button class="btn" id="to-results" style="width:100%">View Results</button>
+        <button class="btn ghost" id="save-and-exit" style="width:100%;margin-top:8px">Save & Exit</button>
+      </div>
+    </aside>
+  </div>
+
+<script>
+// Steps config
+const steps = [
+  {id:'height', label:'How tall are you? (cm)', type:'number', hint:'We use height to calculate BMI.'},
+  {id:'weight', label:'Current weight (kg)', type:'number', hint:'This lets us estimate calories.'},
+  {id:'age', label:'Age', type:'number', hint:'Affects energy needs.'},
+  {id:'gender', label:'Gender', type:'select', options:['female','male','other'], hint:'Used for estimation only.'},
+  {id:'activity', label:'Activity level', type:'select', options:['sedentary','light','moderate','active','athlete'], hint:'Pick the one closest to you.'},
+  {id:'ideal', label:'Goal weight (kg)', type:'number', hint:'A realistic target helps.'},
+  {id:'build', label:'Preferred build', type:'select', options:['lean','toned','muscular'], hint:'Choose how you want to feel.'}
+];
+
+let state = {}; let index = 0;
+const total = steps.length;
+const activityFactor = {sedentary:1.2, light:1.375, moderate:1.55, active:1.725, athlete:1.9};
+const $ = id => document.getElementById(id);
+
+function save(){ localStorage.setItem('wp_answers', JSON.stringify(state)); }
+function load(){ try{ const s=JSON.parse(localStorage.getItem('wp_answers')||'null'); if(s) state=s; }catch(e){} }
+function clearAll(){ localStorage.removeItem('wp_answers'); localStorage.removeItem('wp_account'); state={}; index=0; render(); }
+
+function render(){
+  $('step-readout').textContent = `Step ${Math.min(index+1,total)} / ${total}`;
+  const pct = Math.round((index/total)*100); $('bar').style.width = pct+'%';
+  const s = steps[index];
+  const panel = $('panel');
+  panel.className = 'step anim';
+  let html = `<h2>${s.label}</h2><div class="small" style="margin-top:10px">${s.hint}</div><div style="margin-top:12px">`;
+  if(s.type==='select'){
+    html += `<select id="val">` + s.options.map(o=>`<option value="${o}">${o[0].toUpperCase()+o.slice(1)}</option>`).join('') + `</select>`;
+  } else {
+    html += `<input id="val" type="number" placeholder="${s.label}">`;
+  }
+  html += `</div>`;
+  panel.innerHTML = html;
+
+  const controls = $('controls'); controls.innerHTML='';
+  if(index>0){ const b=document.createElement('button'); b.className='btn ghost'; b.textContent='Back'; b.onclick=()=>{ index--; render(); }; controls.appendChild(b); }
+  const next=document.createElement('button'); next.className='btn'; next.textContent = (index===total-1?'Finish':'Next'); next.onclick=nextStep; controls.appendChild(next);
+
+  // prefill
+  const el = document.getElementById('val'); if(state[s.id]!==undefined) el.value = state[s.id];
+  el && el.focus && el.focus();
+  updateSummary(); // update KPI side even during quiz
+}
+
+function nextStep(){
+  const s = steps[index];
+  const v = document.getElementById('val').value;
+  if(v==='' || v===undefined){ alert('Please enter a value.'); return; }
+  state[s.id] = (s.type==='number') ? Number(v) : v;
+  save();
+  index++;
+  if(index < total){ render(); } else { // finished
+    // navigate to results page: store state and go
+    localStorage.setItem('wp_answers', JSON.stringify(state));
+    location.href = 'results.html';
+  }
+}
+
+function updateSummary(){
+  // attempt to compute kpis if data exists
+  const h = Number(state.height||0), w = Number(state.weight||0), age = Number(state.age||0), gender = state.gender||'female';
+  if(h && w && age){
+    const bmi = (w / Math.pow(h/100,2)); $('bmi').textContent = (Math.round(bmi*10)/10).toFixed(1); $('cat').textContent = bmi<18.5?'Under':bmi<25?'Normal':bmi<30?'Over':'Obese';
+    const base = 10*w + 6.25*h - 5*age + (gender==='male'?5:(gender==='female'?-161:-78)); const tdee = Math.round(base * (activityFactor[state.activity||'moderate']||1.55));
+    $('bmr').textContent = Math.round(base) + ' kcal'; $('tdee').textContent = tdee + ' kcal';
+    // macros
+    const goal = (state.ideal && w) ? ((state.ideal < w-0.5)?'lose':(state.ideal > w+0.5)?'gain':'maintain') : 'maintain';
+    const target = goal==='lose'?Math.max(1200, tdee-500):(goal==='gain'?tdee+300:tdee);
+    const protein = Math.round((goal==='lose'?1.8:1.6)*w); const fats = Math.round((goal==='lose'?0.25:0.30)*target/9); const carbs = Math.round(Math.max(0,(target - protein*4 - fats*9)/4));
+    $('mp').textContent=protein+'g'; $('mc').textContent=carbs+'g'; $('mf').textContent=fats+'g';
+  }
+}
+
+// buttons
+$('to-results').addEventListener('click', ()=>{ localStorage.setItem('wp_answers', JSON.stringify(state)); location.href='results.html'; });
+$('save-and-exit').addEventListener('click', ()=>{ save(); alert('Saved locally. You can close this tab.'); });
+
+// init
+load();
+render();
+</script>
+</body>
+</html>
